@@ -56,4 +56,4 @@ if __name__ == "__main__":
         expense_df = pd.DataFrame(columns=["date", "category", "amount"])
         expense_df.to_csv("expenses.csv", index=False)
 
-    st.run()
+    #st.run()
