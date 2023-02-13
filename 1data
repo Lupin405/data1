@@ -1,0 +1,59 @@
+import streamlit as st
+import pandas as pd
+
+def view_expenses(expense_list):
+    st.write("All expenses:")
+    st.table(expense_list)
+    return
+
+def add_expense_form(expense_list):
+    date = st.date_input("Enter the date of the expense")
+    category = st.selectbox("Select the category of the expense", ["Groceries", "Transportation", "Entertainment"])
+    amount = st.number_input("Enter the amount of the expense")
+    if st.button("Add expense"):
+        expense_list.append({"date": date, "category": category, "amount": amount})
+    return expense_list
+
+if __name__ == "__main__":
+    expense_list = []
+    expense_df = pd.DataFrame(columns=["date", "category", "amount"])
+
+    try:
+        expense_df = pd.read_csv("expenses.csv")
+        expense_list = expense_df.to_dict("records")
+    except FileNotFoundError:
+        pass
+
+    st.title("Daily Expenses Tracker")
+
+    expense_list = add_expense_form(expense_list)
+    expense_df = pd.concat([expense_df, pd.DataFrame(expense_list)], ignore_index=True)
+    expense_df.to_csv("expenses.csv", index=False)
+
+    view_expenses(expense_list)
+
+    st.write("Expense Total: $" + str(expense_df["amount"].sum()))
+
+    st.write("Expense by Category:")
+    categories = ["Groceries", "Transportation", "Entertainment"]
+    for category in categories:
+        expenses = expense_df[expense_df["category"] == category]["amount"].sum()
+        st.write(" - " + category + ": $" + str(expenses))
+
+    st.write("Expense by Date:")
+    dates = list(set(expense_df["date"]))
+    for date in dates:
+        expenses = expense_df[expense_df["date"] == date]["amount"]
+        st.write(" - " + str(date) + ": $" + str(expenses))
+
+    if st.button("Download as Excel"):
+        st.write("Downloading...")
+        expense_df.to_excel("expenses.xlsx", index=False)
+        st.write("Download complete.")
+
+    if st.button("Reset"):
+        expense_list = []
+        expense_df = pd.DataFrame(columns=["date", "category", "amount"])
+        expense_df.to_csv("expenses.csv", index=False)
+
+    st.run()
